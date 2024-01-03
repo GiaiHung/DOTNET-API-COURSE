@@ -67,7 +67,7 @@ namespace DotnetAPI.Controllers
 
                     if (_dapper.ExecuteSqlWithParameters(sqlAddAuth, sqlParameters))
                     {
-                        
+
                         string sqlAddUser = @"
                             INSERT INTO TutorialAppSchema.Users(
                                 [FirstName],
@@ -76,10 +76,10 @@ namespace DotnetAPI.Controllers
                                 [Gender],
                                 [Active]
                             ) VALUES (" +
-                                "'" + userForRegistration.FirstName + 
+                                "'" + userForRegistration.FirstName +
                                 "', '" + userForRegistration.LastName +
-                                "', '" + userForRegistration.Email + 
-                                "', '" + userForRegistration.Gender + 
+                                "', '" + userForRegistration.Email +
+                                "', '" + userForRegistration.Gender +
                                 "', 1)";
                         if (_dapper.ExecuteSql(sqlAddUser))
                         {
@@ -106,15 +106,14 @@ namespace DotnetAPI.Controllers
             UserForLoginConfirmationDto userForConfirmation = _dapper
                 .LoadDataSingle<UserForLoginConfirmationDto>(sqlForHashAndSalt);
 
+
             byte[] passwordHash = _authHelper.GetPasswordHash(userForLogin.Password, userForConfirmation.PasswordSalt);
 
             // if (passwordHash == userForConfirmation.PasswordHash) // Won't work
 
-            for (int index = 0; index < passwordHash.Length; index++)
+            if (Convert.ToBase64String(userForConfirmation.PasswordHash) != Convert.ToBase64String(passwordHash))
             {
-                if (passwordHash[index] != userForConfirmation.PasswordHash[index]){
-                    return StatusCode(401, "Incorrect password!");
-                }
+                return StatusCode(401, "Incorrect password!");
             }
 
             string userIdSql = @"
@@ -134,11 +133,10 @@ namespace DotnetAPI.Controllers
             string userIdSql = @"
                 SELECT UserId FROM TutorialAppSchema.Users WHERE UserId = '" +
                 User.FindFirst("userId")?.Value + "'";
-            
+
             int userId = _dapper.LoadDataSingle<int>(userIdSql);
 
             return _authHelper.CreateToken(userId);
         }
-
     }
 }

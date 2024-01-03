@@ -21,7 +21,7 @@ namespace DotnetAPI.Data
         public T LoadDataSingle<T>(string sql)
         {
             IDbConnection dbConnection = new SqlConnection(_config.GetConnectionString("DefaultConnection"));
-            return dbConnection.QuerySingle<T>(sql);
+            return dbConnection.QueryFirstOrDefault<T>(sql);
         }
 
         public bool ExecuteSql(string sql)
@@ -40,7 +40,7 @@ namespace DotnetAPI.Data
         {
             SqlCommand commandWithParams = new SqlCommand(sql);
 
-            foreach(SqlParameter parameter in parameters)
+            foreach (SqlParameter parameter in parameters)
             {
                 commandWithParams.Parameters.Add(parameter);
             }
