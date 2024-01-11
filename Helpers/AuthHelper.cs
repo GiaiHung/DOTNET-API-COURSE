@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Dapper;
 using DotnetAPI.Data;
 using DotnetAPI.Dtos;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
@@ -86,22 +87,11 @@ namespace DotnetAPI.Helpers
                         @PasswordHash = @PasswordHashParam
                     ";
 
-            List<SqlParameter> sqlParameters = new List<SqlParameter>();
-
-            SqlParameter emailParameter = new SqlParameter("@EmailParam", SqlDbType.VarChar);
-            emailParameter.Value = userSetPassword.Email;
-            sqlParameters.Add(emailParameter);
-
-            SqlParameter passwordSaltParameter = new SqlParameter("@PasswordSaltParam", SqlDbType.VarBinary);
-            passwordSaltParameter.Value = passwordSalt;
-            sqlParameters.Add(passwordSaltParameter);
-
-            SqlParameter passwordHashParameter = new SqlParameter("@PasswordHashParam", SqlDbType.VarBinary);
-            passwordHashParameter.Value = passwordHash;
-            sqlParameters.Add(passwordHashParameter);
-
-
-            return _dapper.ExecuteSqlWithParameters(sqlAddAuth, sqlParameters);
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@EmailParam", userSetPassword.Email, DbType.String);
+            parameters.Add("@PasswordSaltParam", passwordSalt, DbType.Binary);
+            parameters.Add("@PasswordHashParam", passwordHash, DbType.Binary);
+            return _dapper.ExecuteSqlWithParameters(sqlAddAuth, parameters);
         }
     }
 }

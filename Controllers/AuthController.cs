@@ -80,10 +80,9 @@ namespace DotnetAPI.Controllers
         [HttpPost("Login")]
         public IActionResult Login(UserForLoginDto userForLogin)
         {
-            string sqlForHashAndSalt = @"SELECT 
-                [PasswordHash],
-                [PasswordSalt] FROM TutorialAppSchema.Auth WHERE Email = '" +
-                userForLogin.Email + "'";
+            string sqlForHashAndSalt = $@"
+                EXEC TutorialAppSchema.GetLoginConfirmation @Email = '{userForLogin.Email}'
+            ";
 
             UserForLoginConfirmationDto userForConfirmation = _dapper
                 .LoadDataSingle<UserForLoginConfirmationDto>(sqlForHashAndSalt);
