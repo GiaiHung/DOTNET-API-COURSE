@@ -1,3 +1,5 @@
+using System.Data;
+using Dapper;
 using DotnetAPI.Data;
 using DotnetAPI.Dtos;
 using DotnetAPI.Models;
@@ -19,22 +21,25 @@ public class UserCompleteController : ControllerBase
     public IEnumerable<UserComplete> GetUsers(int userId, int isActive)
     {
         string sql = "exec TutorialAppSchema.GetUserDetail";
-        string parameters = "";
+        string stringParameter = "";
+        DynamicParameters sqlParameters = new DynamicParameters();
 
         if (userId != 0)
         {
-            parameters += $", @UserId = {userId}";
+            stringParameter += ", @UserId = @UserIdParameter";
+            sqlParameters.Add("@UserIdParameter", userId, DbType.Int32);
         }
         if (isActive < 2)
         {
-            parameters += $", @Active = {isActive}";
+            stringParameter += ", @Active = @ActiveParameter";
+            sqlParameters.Add("@ActiveParameter", isActive, DbType.Boolean);
         }
-        if (parameters != "")
+        if (stringParameter != "")
         {
-            sql += parameters.Substring(1);
+            sql += stringParameter.Substring(1);
         }
 
-        IEnumerable<UserComplete> users = _dapper.LoadData<UserComplete>(sql);
+        IEnumerable<UserComplete> users = _dapper.LoadDataWithParameters<UserComplete>(sql, sqlParameters);
         return users;
     }
 
@@ -54,8 +59,6 @@ public class UserCompleteController : ControllerBase
                 @AvgSalary = {user.AvgSalary},
                 @UserId = {user.UserId}
         ";
-
-        Console.WriteLine(sql);
 
         if (_dapper.ExecuteSql(sql))
         {

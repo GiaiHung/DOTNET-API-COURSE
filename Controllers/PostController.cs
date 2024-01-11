@@ -1,5 +1,6 @@
+using System.Data;
+using Dapper;
 using DotnetAPI.Data;
-using DotnetAPI.Dtos;
 using DotnetAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,27 +22,31 @@ namespace DotnetAPI.Controllers
         public IEnumerable<Post> GetPosts(int postId = 0, int userId = 0, string searchParam = "None")
         {
             string sql = @"EXEC TutorialAppSchema.GetPosts";
-            string parameters = "";
+            string stringParameter = "";
+            DynamicParameters sqlParameters = new DynamicParameters();
 
             if (postId != 0)
             {
-                parameters += $", @PostId = {postId}";
+                stringParameter += ", @PostId = @PostIdParameter";
+                sqlParameters.Add("@PostIdParameter", postId, DbType.Int32);
             }
             if (userId != 0)
             {
-                parameters += $", @UserId = {userId}";
+                stringParameter += ", @UserId = @UserIdParameter";
+                sqlParameters.Add("@UserIdParameter", userId, DbType.Int32);
             }
             if (searchParam.ToLower() != "none")
             {
-                parameters += $", @Search = '{searchParam}'";
+                stringParameter += ", @Search = @SearchParameter";
+                sqlParameters.Add("@SearchParameter", searchParam, DbType.String);
             }
 
-            if (parameters != "")
+            if (stringParameter != "")
             {
-                sql += parameters.Substring(1);
+                sql += stringParameter.Substring(1);
             }
 
-            return _dapper.LoadData<Post>(sql);
+            return _dapper.LoadDataWithParameters<Post>(sql, sqlParameters);
         }
 
         [HttpGet("MyPosts")]
