@@ -1,20 +1,24 @@
 using System.Data;
 using Dapper;
 using DotnetAPI.Data;
-using DotnetAPI.Dtos;
+using DotnetAPI.Helpers;
 using DotnetAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DotnetAPI.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("[controller]")]
 public class UserCompleteController : ControllerBase
 {
     DataContextDapper _dapper;
+    private readonly ReusableSQL _reusableSql;
     public UserCompleteController(IConfiguration config)
     {
         _dapper = new DataContextDapper(config);
+        _reusableSql = new ReusableSQL(config);
     }
 
     [HttpGet("GetUsers/{userId}/{isActive}")]
@@ -46,21 +50,7 @@ public class UserCompleteController : ControllerBase
     [HttpPut("UpsertUser")]
     public IActionResult EditUser(UserComplete user)
     {
-        string sql = @$"
-            EXEC TutorialAppSchema.UserUpsert
-                @FirstName = '{user.FirstName}',
-                @LastName = '{user.LastName}',
-                @Email = '{user.Email}',
-                @Gender = '{user.Gender}',
-                @Active = {user.Active},
-                @JobTitle = '{user.JobTitle}',
-                @Department = '{user.Department}',
-                @Salary = {user.Salary},
-                @AvgSalary = {user.AvgSalary},
-                @UserId = {user.UserId}
-        ";
-
-        if (_dapper.ExecuteSql(sql))
+        if (_reusableSql.UserUpsert(user))
         {
             return Ok("Successfully updated user");
         }
